@@ -3,7 +3,6 @@ export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
-
     try {
         const fetch = (await import('node-fetch')).default;
         const url = 'https://api.mercadopago.com/preapproval';
@@ -15,7 +14,7 @@ export default async function handler(req, res) {
         const accessToken = process.env.MP_ACCESS_TOKEN;
 
         if (!accessToken) {
-            return res.status(500).json({ error: 'Error de configuración: La variable de entorno MP_ACCESS_TOKEN no está configurada en Vercel.' });
+            return res.status(500).json({ error: 'Error de configuración: MP_ACCESS_TOKEN no está configurado en Vercel.' });
         }
 
         const body = {
@@ -39,13 +38,11 @@ export default async function handler(req, res) {
         const data = await mpResponse.json();
 
         if (!mpResponse.ok) {
-            console.error('Error de Mercado Pago:', data);
             return res.status(mpResponse.status).json({ error: 'Error devuelto por Mercado Pago', details: data });
         }
         
         return res.status(200).json({ id: data.id });
     } catch (error) {
-        console.error('Error interno en la función:', error);
         return res.status(500).json({ error: 'Error interno de la API', details: error.message });
     }
 }

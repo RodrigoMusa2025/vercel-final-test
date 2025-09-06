@@ -3,219 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EvolutionGlute.IA - Rutinas para Glúteos</title>
-    
-    <meta name="theme-color" content="#F0218B">
-    <link rel="apple-touch-icon" href="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/1e9600f3-7bbc-4f34-a86b-6b899f888ff2.png">
-    <link rel="manifest" id="manifest">
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <script src="https://player.vimeo.com/api/player.js"></script>
+    <title>EvolutionGlute - Pago</title>
     <style>
-        /* AQUI VA TU CSS ORIGINAL COMPLETO */
-        /* FUENTE Y ESTILOS GENERALES */
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap');
-
-        /* PALETA DE COLORES - MODO FEMENINO Y ENERGÉTICO */
-        :root {
-            --color-primary: #F0218B;   /* Rosa Fuerte Energético */
-            --color-primary-dark: #C2185B;/* Rosa Oscuro */
-            --color-secondary: #e74c3c;   /* Rojo para alertas/reemplazos */
-            --color-accent: #f0f0f0;     /* Blanco roto para acentos sutiles */
-            --color-dark: #0a0a0a;       /* Negro profundo */
-            --color-light: #ffffff;
-            --color-panel: rgba(20, 20, 20, 0.85); /* Panel carbón semi-transparente */
-            --color-card: #2b2b2b;       /* Gris oscuro para tarjetas */
-            --color-card-darker: #1c1c1c; /* Gris más oscuro */
-            --color-text: #ecf0f1;
-            --color-border: #444444;     /* Borde gris medio */
-            --color-success: #27ae60;     /* Verde éxito */
-            --glow-primary: rgba(240, 33, 139, 0.6);
-            --glow-accent: rgba(240, 240, 240, 0.5);
-        }
-        .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-top: 4px solid #F0218B;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto 0 auto;
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #121212; color: white; display: grid; place-content: center; height: 100vh; text-align: center; margin: 0; }
+        .container { background-color: #1e1e1e; padding: 40px; border-radius: 10px; border: 1px solid #333; }
+        h1 { margin-top: 0; color: #F0218B; }
+        .spinner { border: 4px solid rgba(255, 255, 255, 0.3); border-top: 4px solid #F0218B; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto 0 auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        /* ... PEGA AQUÍ TODO EL RESTO DE TU CSS ... */
     </style>
 </head>
 <body>
-
-<div class="brazo-app-container">
-
-    <div id="login-view" class="brazo-app-section active">
-        </div>
-    
-    <div id="welcome" class="brazo-app-section">
-        <h1><strong>Evolution</strong>Glute</h1>
-        <p id="welcome-message">Tu entrenadora de glúteos inteligente...</p>
-        
-        <button id="install-pwa-btn" class="brazo-app-btn" style="display: none;">
-             <i class="fa-solid fa-download"></i> Instalar App en tu Celular
-        </button>
-
-        <div id="subscription-area" style="margin: 20px 0;">
-            <div id="wallet_container"><div class="spinner"></div></div>
-            <div id="subscription-active-message" style="display:none;">
-                <p style="color: var(--color-success); font-weight: bold;">✅ ¡Tu suscripción está activa!</p>
-            </div>
-        </div>
-        <div id="main-app-buttons">
-            <button class="brazo-app-btn" data-target="routine-generator">Generar con IA</button>
-            <button class="brazo-app-btn brazo-app-btn-secondary" data-target="custom-routine-creator">Crear Mi Rutina</button>
-            <button class="brazo-app-btn brazo-app-btn-secondary" data-target="saved-routines-view">Mis Rutinas</button>
-            <button class="brazo-app-btn brazo-app-btn-secondary" data-target="progress-view">Mi Progreso</button>
-            <button class="brazo-app-btn brazo-app-btn-secondary" data-target="settings-view">Ajustes</button>
-        </div>
-        </div>
-    
+    <div class="container">
+        <h1>EvolutionGlute</h1>
+        <p>Completa tu suscripción para acceder a todas las rutinas.</p>
+        <div id="wallet_container"><div class="spinner"></div></div>
     </div>
 
-<div id="modal" class="modal-overlay">
-    </div>
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const mp = new MercadoPago('APP_USR-8ec6b9fe-500c-4ad8-9c19-0ba035211799', {
+                locale: 'es-AR'
+            });
 
-
-<script src="https://sdk.mercadopago.com/js/v2"></script>
-<script type="module">
-    // --- IMPORTACIONES DE FIREBASE ---
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { 
-        getAuth, 
-        createUserWithEmailAndPassword, 
-        signInWithEmailAndPassword, 
-        onAuthStateChanged,
-        signOut
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { 
-        getFirestore, 
-        doc, 
-        setDoc,
-        getDoc,
-        collection,
-        addDoc,
-        getDocs,
-        deleteDoc,
-        query 
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-    // --- CONFIGURACIÓN DE FIREBASE ---
-    const firebaseConfig = {
-        apiKey: "AIzaSyAm73lVXPJaccAwPJs8MyP8Mh8kBrvcAMM",
-        authDomain: "appoficial-84d90.firebaseapp.com",
-        projectId: "appoficial-84d90",
-        storageBucket: "appoficial-84d90.appspot.com",
-        messagingSenderId: "879173468964",
-        appId: "1:879173468964:web:c0b715a48839bdbcd3a9b1",
-        measurementId: "G-F4591FJ9C0"
-    };
-
-    // --- INICIALIZACIÓN DE FIREBASE ---
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    let currentUserId = null;
-
-    // --- BASE DE DATOS DE EJERCICIOS ---
-    const exerciseDatabase = [
-        // ... (Aquí va tu base de datos de ejercicios completa)
-    ];
-    
-    // =========================================================
-    // ========= INICIO: LÓGICA DE LA APLICACIÓN COMPLETA =========
-    // =========================================================
-    
-    // --- LÓGICA DE MERCADO PAGO ---
-    function renderCheckoutButton() {
-        // Usa tu Public Key de PRODUCCIÓN
-        const mp = new MercadoPago('APP_USR-8ec6b9fe-500c-4ad8-9c19-0ba035211799', {
-            locale: 'es-AR'
-        });
-
-        // Llama a la API para crear la preferencia
-        fetch('/api/create_preference', { method: 'POST' })
-        .then(res => {
-            if (!res.ok) {
-                return res.json().then(errorData => {
-                    throw new Error(`El servidor respondió con error: ${errorData.error || 'Desconocido'}`);
-                });
-            }
-            return res.json();
-        })
-        .then(data => {
-            if (data.id) {
-                document.getElementById('wallet_container').innerHTML = '';
-                mp.wallet({
-                    preferenceId: data.id,
-                    render: { container: '#wallet_container', label: 'Suscribirme' }
-                });
-            } else {
-                throw new Error("No se recibió un ID de preferencia válido.");
-            }
-        })
-        .catch(error => {
-            console.error("Error al renderizar el botón de pago:", error);
-            const container = document.getElementById('wallet_container');
-            if (container) container.innerText = `Error: ${error.message}`;
-        });
-    }
-
-    // Lógica para verificar si el usuario ya está suscrito
-    async function checkUserSubscriptionStatus(user) {
-        // MÁS ADELANTE, esta función revisará en tu base de datos (Firebase)
-        // si el usuario tiene una suscripción activa.
-        // Por ahora, simulamos que NO está suscrito para que siempre muestre el botón.
-        const isSubscribed = false; 
-
-        const subArea = document.getElementById('subscription-area');
-        const mainButtons = document.getElementById('main-app-buttons');
-
-        if (isSubscribed) {
-            if (subArea) subArea.style.display = 'none';
-            if (mainButtons) mainButtons.style.display = 'block';
-        } else {
-            if (subArea) subArea.style.display = 'block';
-            if (mainButtons) mainButtons.style.display = 'none';
-            renderCheckoutButton(); // Muestra el botón de pago si no está suscrito
-        }
-    }
-
-    // --- LÓGICA ORIGINAL DE TU APLICACIÓN ---
-    document.addEventListener('DOMContentLoaded', () => {
-        // Aquí dentro va el resto de tu código original: 
-        // selectores de elementos del DOM, funciones showSection, showModal, 
-        // lógica del generador, etc.
-
-        // Ejemplo de cómo deberían estar tus funciones aquí:
-        // const sections = document.querySelectorAll('.brazo-app-section');
-        // window.showSection = function(sectionId) { ... }
-        // etc.
-
-        // --- MANEJADOR DE ESTADO DE AUTENTICACIÓN (onAuthStateChanged) ---
-        // Lo dejamos aquí para que se ejecute cuando el DOM esté listo
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                currentUserId = user.uid;
-                const welcomeMessage = document.getElementById('welcome-message');
-                if (welcomeMessage) {
-                    welcomeMessage.innerHTML = `Bienvenida de nuevo, <strong>${user.email.split('@')[0]}</strong>. ¿Lista para construir tu mejor versión?`;
+            fetch('/api/create_preference', { method: 'POST' })
+            .then(res => {
+                if (!res.ok) {
+                    return res.json().then(errorData => {
+                        throw new Error(`Servidor respondió ${res.status}: ${JSON.stringify(errorData)}`);
+                    });
                 }
-                // Las funciones como showSection deben estar definidas para que esto funcione
-                // window.showSection('welcome'); 
-                checkUserSubscriptionStatus(user); // Llamada clave
-            } else {
-                currentUserId = null;
-                // window.showSection('login-view');
-            }
+                return res.json();
+            })
+            .then(data => {
+                if (data.id) {
+                    document.getElementById('wallet_container').innerHTML = '';
+                    mp.wallet({
+                        preferenceId: data.id,
+                        render: { container: '#wallet_container', label: 'Suscribirme' }
+                    });
+                } else {
+                    throw new Error("No se recibió ID de preferencia.");
+                }
+            })
+            .catch(error => {
+                console.error("Error final:", error);
+                document.getElementById('wallet_container').innerText = `Error: ${error.message}`;
+            });
         });
-    });
-</script>
-
+    </script>
 </body>
 </html>
