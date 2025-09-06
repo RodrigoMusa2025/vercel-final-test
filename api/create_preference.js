@@ -5,25 +5,24 @@ export default async function handler(req, res) {
     }
 
     try {
-        // Usamos la librería node-fetch que ya está instalada
         const fetch = (await import('node-fetch')).default;
         const url = 'https://api.mercadopago.com/preapproval';
         
-        // El ID de tu plan de PRUEBA
-        const planId = 'adabf5996b244b6aa181e7df9447f'; 
+        // ID del Plan de PRODUCCIÓN
+        const planId = 'c8f83df62e9a485bb3a70551636fde95'; 
         
-        // La clave secreta de PRUEBA desde Vercel
-        const accessToken = process.env.MP_ACCESS_TOKEN_TEST;
+        // Clave secreta de PRODUCCIÓN desde Vercel
+        const accessToken = process.env.MP_ACCESS_TOKEN;
 
         if (!accessToken) {
-            return res.status(500).json({ error: 'Error de configuración: falta el token de acceso.' });
+            return res.status(500).json({ error: 'Error de configuración: falta el Access Token.' });
         }
 
         const body = {
             preapproval_plan_id: planId,
-            reason: 'Suscripción de Prueba Final',
+            reason: 'Suscripción Evolution Gym',
             back_urls: {
-                success: 'https://www.google.com?status=success',
+                success: 'https://www.google.com?status=success', // Temporalmente a Google
                 failure: 'https://www.google.com?status=failure',
                 pending: 'https://www.google.com?status=pending'
             },
