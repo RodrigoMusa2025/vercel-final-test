@@ -5,71 +5,51 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prueba de Pago Vercel</title>
     <style>
-        body { 
-            font-family: sans-serif; 
-            background-color: #121212; 
-            color: white; 
-            display: grid; 
-            place-content: center; 
-            height: 100vh; 
-            text-align: center; 
-            margin: 0; 
-        }
-        .container { 
-            background-color: #222; 
-            padding: 40px; 
-            border-radius: 10px; 
-        }
+        body { font-family: sans-serif; background-color: #121212; color: white; display: grid; place-content: center; height: 100vh; text-align: center; margin: 0; }
+        .container { background-color: #222; padding: 40px; border-radius: 10px; min-width: 300px; }
+        #response-container { margin-top: 20px; padding: 15px; border-radius: 5px; font-weight: bold; }
+        .success { background-color: #27ae60; color: white; }
+        .error { background-color: #e74c3c; color: white; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Prueba de Checkout</h1>
-        <p>Aquí debería aparecer el botón de pago de Mercado Pago.</p>
-        <div id="wallet_container"></div>
+        <h1>Prueba de Conexión con la API</h1>
+        <p>Esperando respuesta del servidor...</p>
+        <div id="response-container"></div>
     </div>
 
-    <script src="https://sdk.mercadopago.com/js/v2"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            console.log("Página cargada. Iniciando proceso de pago.");
-
-            // 2. Inicializar Mercado Pago con tu Public Key
-            const mp = new MercadoPago('APP_USR-24a9d90b-61af-42ad-b738-ab8eb909bd97', {
-                locale: 'es-AR'
-            });
-
-            // 3. Llamar a nuestra API para crear la preferencia
-            console.log("Llamando a la API en /api/create_preference...");
+            const responseContainer = document.getElementById('response-container');
+            
             fetch('/api/create_preference', {
                 method: 'POST'
             })
             .then(res => {
-                if (!res.ok) {
-                    throw new Error(`El servidor respondió con error: ${res.status}`);
+                // Primero revisamos si la respuesta es un JSON válido
+                if (!res.headers.get("content-type")?.includes("application/json")) {
+                   throw new Error(`Respuesta no es JSON. Código: ${res.status}`);
                 }
                 return res.json();
             })
             .then(data => {
-                console.log("Respuesta del servidor:", data);
-                if (data.id) {
-                    // 4. Renderizar el botón con el ID de preferencia
-                    mp.wallet({
-                        preferenceId: data.id,
-                        render: {
-                            container: '#wallet_container',
-                            label: 'Pagar Prueba',
-                        }
-                    });
-                    console.log("Botón de pago renderizado.");
-                } else {
-                    console.error("La respuesta del servidor no contiene un ID.");
-                    document.getElementById('wallet_container').innerText = 'Error: No se recibió ID de preferencia.';
+                // Si la respuesta tiene la propiedad 'error'
+                if (data.error) {
+                    responseContainer.innerText = `ERROR RECIBIDO DEL SERVIDOR:\n${data.error}`;
+                    responseContainer.className = 'error';
+                } 
+                // Si la respuesta tiene la propiedad 'id' (para nuestro test de éxito)
+                else if (data.id) {
+                    responseContainer.innerText = `RESPUESTA DEL SERVIDOR:\n${data.id}`;
+                    responseContainer.className = 'success';
                 }
             })
             .catch(error => {
-                console.error("Error al contactar la API:", error);
-                document.getElementById('wallet_container').innerText = 'Error fatal al conectar con el servidor.';
+                // Si la conexión falla por completo (como el 404)
+                console.error("Error en la conexión fetch:", error);
+                responseContainer.innerText = `FALLA DE CONEXIÓN:\nEl servidor no responde o no se encuentra (Error 404).`;
+                responseContainer.className = 'error';
             });
         });
     </script>
