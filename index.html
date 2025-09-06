@@ -3,54 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EvolutionGlute - Pago</title>
+    <title>EvolutionGlute.IA</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <script src="https://player.vimeo.com/api/player.js"></script>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #121212; color: white; display: grid; place-content: center; height: 100vh; text-align: center; margin: 0; }
-        .container { background-color: #1e1e1e; padding: 40px; border-radius: 10px; border: 1px solid #333; }
-        h1 { margin-top: 0; color: #F0218B; }
-        .spinner { border: 4px solid rgba(255, 255, 255, 0.3); border-top: 4px solid #F0218B; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto 0 auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* ... Pega aquí TODO tu CSS original ... */
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>EvolutionGlute</h1>
-        <p>Completa tu suscripción para acceder a todas las rutinas.</p>
-        <div id="wallet_container"><div class="spinner"></div></div>
+
+    <div id="subscription-area" style="margin: 20px 0;">
+        <div id="wallet_container"></div>
     </div>
+    <div id="main-app-buttons" style="display:none;">
+        </div>
 
-    <script src="https://sdk.mercadopago.com/js/v2"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const mp = new MercadoPago('APP_USR-8ec6b9fe-500c-4ad8-9c19-0ba035211799', {
-                locale: 'es-AR'
-            });
 
-            fetch('/api/create_preference', { method: 'POST' })
-            .then(res => {
-                if (!res.ok) {
-                    return res.json().then(errorData => {
-                        throw new Error(`Servidor respondió ${res.status}: ${JSON.stringify(errorData)}`);
-                    });
-                }
-                return res.json();
-            })
-            .then(data => {
-                if (data.id) {
-                    document.getElementById('wallet_container').innerHTML = '';
-                    mp.wallet({
-                        preferenceId: data.id,
-                        render: { container: '#wallet_container', label: 'Suscribirme' }
-                    });
-                } else {
-                    throw new Error("No se recibió ID de preferencia.");
-                }
-            })
-            .catch(error => {
-                console.error("Error final:", error);
-                document.getElementById('wallet_container').innerText = `Error: ${error.message}`;
-            });
+<script src="https://sdk.mercadopago.com/js/v2"></script>
+<script type="module">
+    // --- IMPORTACIONES Y CONFIG DE FIREBASE ---
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    // ... y el resto de tus importaciones ...
+
+    const firebaseConfig = { /* ... tu config ... */ };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    // ... resto de inicializaciones ...
+    
+    // --- LÓGICA DE MERCADO PAGO ---
+    function renderCheckoutButton() {
+        const mp = new MercadoPago('APP_USR-8ec6b9fe-500c-4ad8-9c19-0ba035211799', { locale: 'es-AR' });
+        fetch('/api/create_preference', { method: 'POST' })
+        .then(res => res.ok ? res.json() : Promise.reject(res.json()))
+        .then(data => {
+            if (data.id) {
+                document.getElementById('wallet_container').innerHTML = '';
+                mp.wallet({ preferenceId: data.id, render: { container: '#wallet_container' } });
+            }
+        })
+        .catch(error => {
+            console.error(error);
+            document.getElementById('wallet_container').innerText = 'Error al generar botón de pago.';
         });
-    </script>
+    }
+
+    // --- LÓGICA DE TU APP ---
+    // ... tus funciones showSection, showModal, etc. ...
+    
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            // ... tu código de bienvenida ...
+            const isSubscribed = false; // Lógica para verificar suscripción irá aquí
+            if (!isSubscribed) {
+                renderCheckoutButton();
+            }
+        } else {
+            // ... tu código para mostrar el login ...
+        }
+    });
+</script>
 </body>
 </html>
