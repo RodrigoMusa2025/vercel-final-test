@@ -3,13 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prueba de Pago Vercel</title>
+    <title>EvolutionGlute.IA - Rutinas para Glúteos</title>
+    
+    <meta name="theme-color" content="#F0218B">
+    <link rel="apple-touch-icon" href="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/1e9600f3-7bbc-4f34-a86b-6b899f888ff2.png">
+    <link rel="manifest" id="manifest">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <script src="https://player.vimeo.com/api/player.js"></script>
+    
     <style>
-        body { font-family: sans-serif; background-color: #121212; color: white; display: grid; place-content: center; height: 100vh; text-align: center; margin: 0; }
-        .container { background-color: #222; padding: 40px; border-radius: 10px; }
+        /* Aquí va todo tu CSS original. No lo he incluido para que la respuesta no sea kilométrica, pero asegúrate de que esté aquí. */
         .spinner {
             border: 4px solid rgba(255, 255, 255, 0.3);
-            border-top: 4px solid #3483FA;
+            border-top: 4px solid #F0218B;
             border-radius: 50%;
             width: 40px;
             height: 40px;
@@ -20,60 +27,101 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Prueba de Checkout</h1>
-        <p>Aquí debería aparecer el botón de pago de Mercado Pago.</p>
-        <div id="wallet_container">
-             <div class="spinner"></div>
+
+<div class="brazo-app-container">
+
+    <div id="welcome" class="brazo-app-section">
+        <h1><strong>Evolution</strong>Glute</h1>
+        <p id="welcome-message">Tu entrenadora de glúteos inteligente...</p>
+        
+        <button id="install-pwa-btn" class="brazo-app-btn" style="display: none;">
+            <i class="fa-solid fa-download"></i> Instalar App
+        </button>
+
+        <div id="subscription-area" style="margin: 20px 0;">
+            <div id="wallet_container"><div class="spinner"></div></div>
+            <div id="subscription-active-message" style="display:none;">
+                <p style="color: var(--color-success); font-weight: bold;">✅ ¡Suscripción Activa!</p>
+            </div>
         </div>
+
+        <div id="main-app-buttons">
+            <button class="brazo-app-btn" data-target="routine-generator">Generar con IA</button>
+            </div>
+    </div>
+    
     </div>
 
-    <script src="https://sdk.mercadopago.com/js/v2"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log("Página cargada. Iniciando proceso de pago.");
+<div id="modal" class="modal-overlay">
+    </div>
 
-            // Inicializar Mercado Pago con tu Public Key de Producción
-            const mp = new MercadoPago('APP_USR-e1d628ce-0528-4da6-b257-507923c90431', {
-                locale: 'es-AR'
-            });
+<script src="https://sdk.mercadopago.com/js/v2"></script>
+<script type="module">
+    // --- IMPORTACIONES Y CONFIG DE FIREBASE ---
+    // ... tu código de Firebase ...
 
-            // Llamar a nuestra API para crear la preferencia
-            console.log("Llamando a la API en /api/create_preference...");
-            fetch('/api/create_preference', {
-                method: 'POST'
-            })
-            .then(res => {
-                if (!res.ok) {
-                    return res.json().then(errorData => {
-                        throw new Error(`El servidor respondió con error ${res.status}: ${errorData.error || 'Error desconocido'}`);
-                    });
-                }
-                return res.json();
-            })
-            .then(data => {
-                console.log("Preferencia recibida del servidor:", data);
-                if (data.id) {
-                    document.getElementById('wallet_container').innerHTML = ''; // Limpiamos el spinner
-                    // Renderizar el botón con el ID de preferencia
-                    mp.wallet({
-                        preferenceId: data.id,
-                        render: {
-                            container: '#wallet_container',
-                            label: 'Suscribirme',
-                        }
-                    });
-                    console.log("Botón de pago renderizado.");
-                } else {
-                    console.error("La respuesta del servidor no contiene un ID.");
-                    document.getElementById('wallet_container').innerText = 'Error: No se recibió ID de preferencia.';
-                }
-            })
-            .catch(error => {
-                console.error("Error final:", error);
-                document.getElementById('wallet_container').innerText = `Error: ${error.message}`;
-            });
+    // --- BASE DE DATOS DE EJERCICIOS ---
+    // ... tu base de datos de ejercicios ...
+
+    // --- LÓGICA DE MERCADO PAGO ---
+    function renderCheckoutButton() {
+        const mp = new MercadoPago('APP_USR-8ec6b9fe-500c-4ad8-9c19-0ba035211799', {
+            locale: 'es-AR'
         });
-    </script>
+
+        fetch('/api/create_preference', { method: 'POST' })
+        .then(res => res.ok ? res.json() : res.json().then(err => Promise.reject(err)))
+        .then(data => {
+            if (data.id) {
+                document.getElementById('wallet_container').innerHTML = '';
+                mp.wallet({
+                    preferenceId: data.id,
+                    render: { container: '#wallet_container', label: 'Suscribirme' }
+                });
+            } else {
+                throw new Error("Respuesta de API inválida.");
+            }
+        })
+        .catch(error => {
+            console.error("Error al renderizar botón de pago:", error);
+            const errorContainer = document.getElementById('wallet_container');
+            if(errorContainer) errorContainer.innerText = `Error: No se pudo generar el botón de pago.`;
+        });
+    }
+
+    async function checkUserSubscriptionStatus(user) {
+        // AQUÍ VA LA LÓGICA PARA VERIFICAR EN TU BASE DE DATOS SI EL USUARIO YA PAGÓ
+        // Por ahora, simulamos que NO está suscrito para que siempre muestre el botón
+        const isSubscribed = false; 
+
+        const subArea = document.getElementById('subscription-area');
+        const mainButtons = document.getElementById('main-app-buttons');
+
+        if (isSubscribed) {
+            subArea.style.display = 'none';
+            mainButtons.style.display = 'block';
+        } else {
+            subArea.style.display = 'block';
+            mainButtons.style.display = 'none';
+            renderCheckoutButton();
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // ... TODA TU LÓGICA ORIGINAL DE LA APP ...
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // ... tu código de bienvenida ...
+                window.showSection('welcome');
+                checkUserSubscriptionStatus(user); // Llamada clave
+            } else {
+                // ... tu código para mostrar el login ...
+                window.showSection('login-view');
+            }
+        });
+    });
+</script>
+
 </body>
 </html>

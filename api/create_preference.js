@@ -8,36 +8,30 @@ export default async function handler(req, res) {
         const fetch = (await import('node-fetch')).default;
         const url = 'https://api.mercadopago.com/preapproval';
         
-        // ID del Plan de PRODUCCIÓN
-        const planId = 'c8f83df62e9a485bb3a70551636fde95'; 
+        // ID de tu Plan de PRODUCCIÓN
+        const planId = 'de7fad4ab7ad4147b0588a9a775c2f99'; 
         
-        // Clave secreta de PRODUCCIÓN desde Vercel
+        // Access Token de PRODUCCIÓN (desde Vercel)
         const accessToken = process.env.MP_ACCESS_TOKEN;
 
         if (!accessToken) {
-            return res.status(500).json({ error: 'Error de configuración: falta el Access Token.' });
+            return res.status(500).json({ error: 'Error de configuración: La variable de entorno MP_ACCESS_TOKEN no está configurada en Vercel.' });
         }
 
         const body = {
             preapproval_plan_id: planId,
-            reason: 'Suscripción Evolution Gym',
-            back_urls: {
-                success: 'https://www.google.com?status=success', // Temporalmente a Google
-                failure: 'https://www.google.com?status=failure',
-                pending: 'https://www.google.com?status=pending'
+            reason: 'Suscripción EvolutionGlute App',
+            back_urls: { 
+                success: 'https://nueva-gules.vercel.app/', 
+                failure: 'https://nueva-gules.vercel.app/',
+                pending: 'https://nueva-gules.vercel.app/'
             },
-            auto_recurring: {
-                frequency: 1,
-                frequency_type: 'months',
-            }
+            auto_recurring: { frequency: 1, frequency_type: 'months' }
         };
 
         const options = {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
         };
 
@@ -50,9 +44,8 @@ export default async function handler(req, res) {
         }
         
         return res.status(200).json({ id: data.id });
-
     } catch (error) {
         console.error('Error interno en la función:', error);
-        return res.status(500).json({ error: 'Error interno del servidor' });
+        return res.status(500).json({ error: 'Error interno de la API', details: error.message });
     }
 }
