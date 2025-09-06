@@ -5,51 +5,90 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prueba de Pago Vercel</title>
     <style>
-        body { font-family: sans-serif; background-color: #121212; color: white; display: grid; place-content: center; height: 100vh; text-align: center; margin: 0; }
-        .container { background-color: #222; padding: 40px; border-radius: 10px; min-width: 300px; }
-        #response-container { margin-top: 20px; padding: 15px; border-radius: 5px; font-weight: bold; }
-        .success { background-color: #27ae60; color: white; }
-        .error { background-color: #e74c3c; color: white; }
+        body { 
+            font-family: sans-serif; 
+            background-color: #121212; 
+            color: white; 
+            display: grid; 
+            place-content: center; 
+            height: 100vh; 
+            text-align: center; 
+            margin: 0; 
+        }
+        .container { 
+            background-color: #222; 
+            padding: 40px; 
+            border-radius: 10px; 
+        }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #3483FA;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto 0 auto;
+        }
+        @keyframes spin { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Prueba de Conexión con la API</h1>
-        <p>Esperando respuesta del servidor...</p>
-        <div id="response-container"></div>
+        <h1>Prueba de Checkout</h1>
+        <p>Aquí debería aparecer el botón de pago de Mercado Pago.</p>
+        <div id="wallet_container">
+             <div class="spinner"></div>
+        </div>
     </div>
 
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const responseContainer = document.getElementById('response-container');
-            
+            console.log("Página cargada. Iniciando proceso de pago.");
+
+            // 2. Inicializar Mercado Pago con tu Public Key de PRUEBA
+            const mp = new MercadoPago('APP_USR-e1d628ce-0528-4da6-b257-507923c90431', {
+                locale: 'es-AR'
+            });
+
+            // 3. Llamar a nuestra API para crear la preferencia
+            console.log("Llamando a la API en /api/create_preference...");
             fetch('/api/create_preference', {
                 method: 'POST'
             })
             .then(res => {
-                // Primero revisamos si la respuesta es un JSON válido
-                if (!res.headers.get("content-type")?.includes("application/json")) {
-                   throw new Error(`Respuesta no es JSON. Código: ${res.status}`);
+                if (!res.ok) {
+                    // Si la respuesta no es OK, leemos el error que devuelve nuestra API
+                    return res.json().then(errorData => {
+                        throw new Error(`El servidor respondió con error ${res.status}: ${errorData.error}`);
+                    });
                 }
                 return res.json();
             })
             .then(data => {
-                // Si la respuesta tiene la propiedad 'error'
-                if (data.error) {
-                    responseContainer.innerText = `ERROR RECIBIDO DEL SERVIDOR:\n${data.error}`;
-                    responseContainer.className = 'error';
-                } 
-                // Si la respuesta tiene la propiedad 'id' (para nuestro test de éxito)
-                else if (data.id) {
-                    responseContainer.innerText = `RESPUESTA DEL SERVIDOR:\n${data.id}`;
-                    responseContainer.className = 'success';
+                console.log("Preferencia recibida del servidor:", data);
+                if (data.id) {
+                    document.getElementById('wallet_container').innerHTML = ''; // Limpiamos el spinner
+                    // 4. Renderizar el botón con el ID de preferencia
+                    mp.wallet({
+                        preferenceId: data.id,
+                        render: {
+                            container: '#wallet_container',
+                            label: 'Pagar Prueba',
+                        }
+                    });
+                    console.log("Botón de pago renderizado.");
+                } else {
+                    console.error("La respuesta del servidor no contiene un ID.");
+                    document.getElementById('wallet_container').innerText = 'Error: No se recibió ID de preferencia.';
                 }
             })
             .catch(error => {
-                // Si la conexión falla por completo (como el 404)
-                console.error("Error en la conexión fetch:", error);
-                responseContainer.innerText = `FALLA DE CONEXIÓN:\nEl servidor no responde o no se encuentra (Error 404).`;
-                responseContainer.className = 'error';
+                console.error("Error final:", error);
+                document.getElementById('wallet_container').innerText = `Error: ${error.message}`;
             });
         });
     </script>
